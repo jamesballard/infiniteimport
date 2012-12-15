@@ -2,10 +2,13 @@
 
 require_once 'database.php';
 
-function database() {
-	$cfg_holder = new DATABASE_CONFIG();
-	$cfg = $cfg_holder->default;
+function database_config() {
+	$dbcfg_holder = new DATABASE_CONFIG();
+        return $dbcfg_holder->default;
+}
 
+function database() {
+        $cfg = database_config();
 	$db_url = "mysql:host=" . $cfg['host'] . ";dbname=" . $cfg['database'];
 	$db = new PDO($db_url, $cfg['login'], $cfg['password'], array(
 		PDO::ATTR_PERSISTENT => true
@@ -24,7 +27,7 @@ function get_system_id() {
 		die('SSL client certificate required');
 	}
 
-	// look for a server id
+	# look for a server id
 	$db = database();
 	$stmt = $db->prepare('select id from systems where certificate = :cert');
 	$stmt->execute(array(':cert' => $client_cert));
@@ -43,6 +46,70 @@ function get_system_id() {
 	}	
 
 	return $server_id;
+}
+
+function bulk_import_csv($source, $table, $allowed_fields) {
+	$mysqlimport = '/usr/local/bin/mysqlimport';
+
+	$dbcfg = database_config();
+	$dbname = $dbcfg['database'];
+
+	if (is_string($allowed_fields)) {
+		$allowed_fields = explode(',', $allowed_fields);
+	}
+
+	$input = fopen($source, 'r');
+
+	# read the csv header line
+	$columns = stream_get_line($input, 1024, "\n");
+	$columns_arr = explode(',', $columns);
+
+	# validate the list of fields
+	$disallowed_fields = array_diff($columns_arr, $allowed_fields);
+	if (count($disallowed_fields) != 0) {
+		header('HTTP/1.0 403 Forbidden');
+		die("Disallowed fields: " . implode(',', $disallowed_fields));
+	}
+
+	# due to a bug in PHP, we cannot use "load data local" directly so shell out to mysqlimport instead
+	# http://stackoverflow.com/questions/13016797/load-data-local-infile-fails-from-php-to-mysql-on-amazon-rds
+
+	# save the rest of the csv to a temporary file
+	$tmpfile = tempnam("/tmp", "$table.dataload.csv");
+	$tmp = fopen($tmpfile, 'w');
+	stream_copy_to_stream($input, $tmp);
+	fclose($tmp);
+	fclose($input);
+
+	# save the mysql connection details to a file
+	$mycnf_data = database_config_file();
+	$mycnf_data .= <<<MYCNF
+	[mysqlimport]
+	local=true
+	columns=$columns
+	fields-terminated-by=,
+	fields-optionally-enclosed-by="
+	ignore=true
+	use-threads=1
+	lock-tables=true
+MYCNF;
+	$mycnf_file = tempnam("/tmp", "$table.dataload.cnf");
+	file_put_contents($mycnf_file, $mycnf_data);
+
+	passthru("$mysqlimport --defaults-extra-file=$mycnf_file $dbname $tmpfile 2>&1");
+
+	unlink($mycnf_file);
+	unlink($tmpfile);
+
+}
+
+function database_config_file() {
+        $dbcfg = database_config();
+	$cnf = "[client]\n";
+	$cnf .= 'host=' . $dbcfg['host'] . "\n";
+	$cnf .= 'user=' . $dbcfg['login'] . "\n";
+	$cnf .= 'pass=' . $dbcfg['password'] . "\n";
+	return $cnf;
 }
 
 ?>

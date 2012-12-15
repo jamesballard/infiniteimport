@@ -2,45 +2,41 @@
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
-$mysqlimport = '/usr/local/bin/mysqlimport';
+# find a unique identifier
+#$id = uniqid();
+$id = 'x'; # a single table makes debugging easier
 
-$input = fopen('php://input', 'r');
+$db = database();
 
-// read the csv header line
-$columns = stream_get_line($input, 1024, "\n");
+# create a staging table
+$table = "import_moodle_$id";
+$create_sql = <<<CREATE_SQL
+create table $table (
+  id bigint(10) unsigned NOT NULL,
+  time bigint(10) unsigned NOT NULL,
+  userid bigint(10) unsigned NOT NULL,
+  ip varchar(45) NOT NULL DEFAULT '',
+  course bigint(10) unsigned NOT NULL DEFAULT '0',
+  module varchar(20) NOT NULL DEFAULT '',
+  cmid bigint(10) unsigned NOT NULL DEFAULT '0',
+  action varchar(40) NOT NULL DEFAULT '',
+  url varchar(100) NOT NULL DEFAULT '',
+  info varchar(255) NOT NULL DEFAULT ''
+)
+CREATE_SQL;
+$stmt = $db->query("drop table if exists $table"); // just in case
+$stmt->closeCursor();
+$stmt = $db->query($create_sql);
+$stmt->closeCursor();
 
-// due to a bug in PHP, we cannot use "load data local" directly here so shell out to mysqlimport instead
-// http://stackoverflow.com/questions/13016797/load-data-local-infile-fails-from-php-to-mysql-on-amazon-rds
+# load the data
+bulk_import_csv('php://input', $table, 'id,time,userid,ip,course,module,cmid,action,url,info');
 
-// save the rest of the csv to a temporary file
-$tmpfile = tempnam("/tmp", "$table.php-dataload");
-$tmp = fopen($tmpfile, 'w');
-stream_copy_to_stream($input, $tmp);
-fclose($tmp);
-fclose($input);
+# transform the data
 
-// save the mysql connection details to a file
-$mycnf_data = <<<MYCNF
-[client]
-host=$dbhost
-user=$dbuser
-pass=$dbpass
 
-[mysqlimport]
-local=true
-columns=$columns
-fields-terminated-by=,
-fields-optionally-enclosed-by="
-ignore=true
-use-threads=1
-lock-tables=true
-MYCNF;
-$mycnf_file = tempnam("/tmp", "php-dateload.cnf");
-file_put_contents($mycnf_file, $mycnf_data);
-
-passthru("$mysqlimport --defaults-extra-file=$mycnf_file $dbname $tmpfile 2>&1");
-
-unlink($mycnf_file);
-unlink($tmpfile);
+# clean up
+#$stmt = $db->query("drop table $table");
+#$stmt->closeCursor();
 
 ?>
