@@ -1,5 +1,9 @@
+# Allow nice URLs without .php suffixes
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule .* $0.php [QSA,L]
 
+# Allow SSL client certificates to be provided, used for authetication.
+# We're trusting the crypto rather than the subject, so it does not have to
+# come from a trusted certificate authority.
 SSLVerifyClient optional_no_ca
