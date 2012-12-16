@@ -11,7 +11,8 @@ function database() {
         $cfg = database_config();
 	$db_url = "mysql:host=" . $cfg['host'] . ";dbname=" . $cfg['database'];
 	$db = new PDO($db_url, $cfg['login'], $cfg['password'], array(
-		PDO::ATTR_PERSISTENT => true
+		PDO::ATTR_PERSISTENT => true,
+		PDO::MYSQL_ATTR_LOCAL_INFILE => 1 /* Won't work on some versions of PHP, may need to custom compile */
 	));
 	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	return $db;
@@ -48,7 +49,63 @@ function get_system_id() {
 	return $server_id;
 }
 
-function bulk_import_csv($source, $table, $allowed_fields) {
+function bulk_import_csv($source, $table, $allowed_fields, $extra_sql = '') {
+	bulk_import_csv_pdo($source, $table, $allowed_fields, $extra_sql);
+}
+
+function bulk_import_csv_pdo($source, $table, $allowed_fields, $extra_sql = '') {
+	if (is_string($allowed_fields)) {
+		$allowed_fields = explode(',', $allowed_fields);
+	}
+
+	$input = fopen($source, 'r');
+
+	# read the csv header line
+	$columns = stream_get_line($input, 1024, "\n");
+	$columns_arr = explode(',', $columns);
+
+	# validate the list of fields
+	$disallowed_fields = array_diff($columns_arr, $allowed_fields);
+	if (count($disallowed_fields) != 0) {
+		header('HTTP/1.0 403 Forbidden');
+		die("Disallowed fields: " . implode(',', $disallowed_fields));
+	}
+
+	# save the rest of the csv to a temporary file
+	$tmpfile = tempnam("/tmp", "infiniterooms.$table.dataload.csv");
+	$tmp = fopen($tmpfile, 'w');
+	stream_copy_to_stream($input, $tmp);
+	fclose($tmp);
+	fclose($input);
+
+	# setup for rapid import
+	$db = database();
+	$db->exec("set unique_checks = 0");
+	$db->exec("set foreign_key_checks = 0");
+	#$db->exec("set sql_log_bin = 0"); # only if super!
+	$db->exec("lock tables $table write");
+
+	# perform the import
+	$import_sql = <<<IMPORT_SQL
+load data local infile '$tmpfile'
+ignore
+into table $table
+fields terminated by ','
+optionally enclosed by '"'
+lines terminated by '\n'
+($columns)
+$extra_sql
+IMPORT_SQL;
+	$db->exec($import_sql);
+	$db->exec("unlock tables");
+
+	# clean up temporary files
+	unlink($tmpfile);
+}
+
+# due to a bug in PHP, we cannot use "load data local" directly so shell out to mysqlimport instead
+# http://stackoverflow.com/questions/13016797/load-data-local-infile-fails-from-php-to-mysql-on-amazon-rds
+function bulk_import_csv_mysqlimport($source, $table, $allowed_fields) {
 	$mysqlimport = '/usr/local/bin/mysqlimport';
 
 	$dbcfg = database_config();
@@ -70,9 +127,6 @@ function bulk_import_csv($source, $table, $allowed_fields) {
 		header('HTTP/1.0 403 Forbidden');
 		die("Disallowed fields: " . implode(',', $disallowed_fields));
 	}
-
-	# due to a bug in PHP, we cannot use "load data local" directly so shell out to mysqlimport instead
-	# http://stackoverflow.com/questions/13016797/load-data-local-infile-fails-from-php-to-mysql-on-amazon-rds
 
 	# save the rest of the csv to a temporary file
 	$tmpfile = tempnam("/tmp", "$table.dataload.csv");
