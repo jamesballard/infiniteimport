@@ -531,7 +531,8 @@ CREATE TABLE `moodle_course` (
   `shortname` varchar(255) NOT NULL DEFAULT '',
   `idnumber` varchar(100) NOT NULL DEFAULT '',
   `startdate` bigint(10) unsigned NOT NULL DEFAULT '0',
-  `visible` tinyint(1) unsigned NOT NULL DEFAULT '1'
+  `visible` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`system_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -553,7 +554,8 @@ CREATE TABLE `moodle_log` (
   `cmid` bigint(10) unsigned NOT NULL DEFAULT '0',
   `action` varchar(40) NOT NULL DEFAULT '',
   `url` varchar(100) NOT NULL DEFAULT '',
-  `info` varchar(255) NOT NULL DEFAULT ''
+  `info` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`system_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -567,7 +569,8 @@ DROP TABLE IF EXISTS `moodle_module`;
 CREATE TABLE `moodle_module` (
   `system_id` int(11) NOT NULL,
   `id` bigint(10) unsigned NOT NULL,
-  `name` varchar(20) NOT NULL DEFAULT ''
+  `name` varchar(20) NOT NULL DEFAULT '',
+  PRIMARY KEY (`system_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -586,7 +589,8 @@ CREATE TABLE `moodle_user` (
   `firstname` varchar(100) NOT NULL DEFAULT '',
   `lastname` varchar(100) NOT NULL DEFAULT '',
   `institution` varchar(40) NOT NULL DEFAULT '',
-  `department` varchar(30) NOT NULL DEFAULT ''
+  `department` varchar(30) NOT NULL DEFAULT '',
+  PRIMARY KEY (`system_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -731,4 +735,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2012-12-16 15:47:03
+-- Dump completed on 2012-12-16 15:50:48
