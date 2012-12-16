@@ -579,6 +579,7 @@ DROP TABLE IF EXISTS `moodle_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `moodle_user` (
+  `system_id` int(11) NOT NULL,
   `id` bigint(10) unsigned NOT NULL,
   `username` varchar(100) NOT NULL DEFAULT '',
   `idnumber` varchar(255) NOT NULL DEFAULT '',
@@ -730,4 +731,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2012-12-16 15:34:05
+-- Dump completed on 2012-12-16 15:47:03
