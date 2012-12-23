@@ -1,6 +1,6 @@
 <?php
 
-$sql = "load data local infile 'testcsv.csv' into table csvtest";
+$sql = "load data local infile 'local-infile.csv' into table csvtest";
 
 $db = new PDO('mysql:host=localhost;dbname=test', 'tester', '', array(
 	PDO::MYSQL_ATTR_LOCAL_INFILE => 1,
