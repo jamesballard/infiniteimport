@@ -49,11 +49,60 @@ function get_system_id() {
 	return $server_id;
 }
 
-function bulk_import_csv($source, $table, $allowed_fields, $extra_sql = '') {
-	bulk_import_csv_pdo($source, $table, $allowed_fields, $extra_sql);
+// import new or updated rows
+function bulk_update_csv($source, $table, $allowed_fields, $extra_sql = '') {
+	if (is_string($allowed_fields)) {
+		$allowed_fields = explode(',', $allowed_fields);
+	}
+
+	$input = fopen($source, 'r');
+
+	# read the csv header line
+	$columns = fgetcsv($input, 1024);
+
+	# validate the list of fields
+	$disallowed_fields = array_diff($columns, $allowed_fields);
+	if (count($disallowed_fields) != 0) {
+		header('HTTP/1.0 403 Forbidden');
+		die("Disallowed fields: " . implode(',', $disallowed_fields));
+	}
+
+	# build parameter list
+	$param_sql = '';
+	foreach($columns as $col) {
+		$param_sql .= "$col = :$col,";
+	}
+	$param_sql = rtrim($param_sql, ',');
+
+	# extra sql need a separator if specified
+	if (!empty($extra_sql)) $extra_sql .= ',';
+
+	# prepare for the import
+	$db = database();
+	$import_sql = <<<IMPORT_SQL
+insert into $table set
+$extra_sql
+$param_sql
+on duplicate key update
+$extra_sql
+$param_sql
+IMPORT_SQL;
+	$stmt = $db->prepare($import_sql);
+
+	# TODO: do we need to prepend : to each key before execution?
+
+	# iterate through the rows importing each one
+	while ($row = fgetcsv($input, 1024)) {
+		$stmt->execute(array_combine($columns, $row));
+		$stmt->closeCursor();
+	}
+
+	# clean up
+	fclose($input);
 }
 
-function bulk_import_csv_pdo($source, $table, $allowed_fields, $extra_sql = '') {
+// import rows that are known to not exist
+function bulk_import_csv($source, $table, $allowed_fields, $extra_sql = '') {
 	if (is_string($allowed_fields)) {
 		$allowed_fields = explode(',', $allowed_fields);
 	}
@@ -85,12 +134,12 @@ function bulk_import_csv_pdo($source, $table, $allowed_fields, $extra_sql = '') 
 	#$db->exec("set sql_log_bin = 0"); # only if super!
 	$db->exec("lock tables $table write");
 
+	if (!empty($extra_sql)) $extra_sql = 'set ' . $extra_sql;
+
 	# perform the import
-	# TODO: this works, but causes us to lose the primary key value, and any other data. I believe this limitation means
-	# we'll have to move away from rapid loading, into parsing it locally and doing batch insert/updates
 	$import_sql = <<<IMPORT_SQL
 load data local infile '$tmpfile'
-replace
+ignore
 into table $table
 fields terminated by ','
 optionally enclosed by '"'

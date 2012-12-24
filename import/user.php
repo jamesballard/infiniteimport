@@ -15,9 +15,9 @@ require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 # load the data
 $system_id = get_system_id();
-bulk_import_csv('php://input',
+bulk_update_csv('php://input',
 	'users',
 	'sysid,username,name,gender,dob',
-	"set system_id = $system_id, modified = now()");
+	"system_id = $system_id, modified = now()");
 
 ?>
