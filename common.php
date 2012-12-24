@@ -86,9 +86,11 @@ function bulk_import_csv_pdo($source, $table, $allowed_fields, $extra_sql = '') 
 	$db->exec("lock tables $table write");
 
 	# perform the import
+	# TODO: this works, but causes us to lose the primary key value, and any other data. I believe this limitation means
+	# we'll have to move away from rapid loading, into parsing it locally and doing batch insert/updates
 	$import_sql = <<<IMPORT_SQL
 load data local infile '$tmpfile'
-ignore
+replace
 into table $table
 fields terminated by ','
 optionally enclosed by '"'
