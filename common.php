@@ -89,8 +89,6 @@ $param_sql
 IMPORT_SQL;
 	$stmt = $db->prepare($import_sql);
 
-	# TODO: do we need to prepend : to each key before execution?
-
 	# iterate through the rows importing each one
 	while ($row = fgetcsv($input, 1024)) {
 		$stmt->execute(array_combine($columns, $row));
