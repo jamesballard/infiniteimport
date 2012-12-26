@@ -1,6 +1,7 @@
 <?php
 
 require_once 'database.php';
+require_once 'lib' . DIRECTORY_SEPARATOR . 'CsvIterator.php';
 
 function database_config() {
 	$dbcfg_holder = new DATABASE_CONFIG();
@@ -49,170 +50,81 @@ function get_system_id() {
 	return $server_id;
 }
 
+class BulkImport {
+
+	private $parser;
+	private $table;
+	private $extra_sql;
+	private $update = false;
+
+	public function __construct($parser, $table) {
+		$this->parser = $parser;
+		$this->table = $table;
+	}
+
+	public function setExtraSql($extra_sql) {
+		$this->extra_sql = $extra_sql;
+	}
+
+	public function setUpdate($update) {
+		$this->update = $update;
+	}
+
+	protected function buildSql() {
+		# build parameter list
+		$param_sql = '';
+		if (!empty($this->extra_sql)) $param_sql .= $this->extra_sql . ',';
+		$fields = $this->parser->getFields();
+		foreach($fields as $col) {
+			$param_sql .= "$col = :$col,";
+		}
+		$param_sql = rtrim($param_sql, ',');
+
+		# prepare for the import
+		$sql = "insert into $this->table ";
+		if (!$this->update) $sql .= 'ignore ';
+		$sql .= 'set ';
+		$sql .= $param_sql . ' ';
+		if ($this->update) {
+			$sql .= 'on duplicate key update ';
+			$sql .= $param_sql . ' ';
+		}
+		return $sql;
+	}
+
+	public function run() {
+		$sql = $this->buildSql();
+		$db = database();
+		$stmt = $db->prepare($sql);
+
+		foreach($this->parser as $row) {
+			$stmt->execute($row);
+			$stmt->closeCursor();
+		}
+	}
+
+}
+
 // import new or updated rows
 function bulk_update_csv($source, $table, $allowed_fields, $extra_sql = '') {
-	if (is_string($allowed_fields)) {
-		$allowed_fields = explode(',', $allowed_fields);
-	}
+	$parser = new CsvIterator($source);
+	$parser->setAllowedFields($allowed_fields);
 
-	$input = fopen($source, 'r');
-
-	# read the csv header line
-	$columns = fgetcsv($input, 1024);
-
-	# validate the list of fields
-	$disallowed_fields = array_diff($columns, $allowed_fields);
-	if (count($disallowed_fields) != 0) {
-		header('HTTP/1.0 403 Forbidden');
-		die("Disallowed fields: " . implode(',', $disallowed_fields));
-	}
-
-	# build parameter list
-	$param_sql = '';
-	foreach($columns as $col) {
-		$param_sql .= "$col = :$col,";
-	}
-	$param_sql = rtrim($param_sql, ',');
-
-	# extra sql need a separator if specified
-	if (!empty($extra_sql)) $extra_sql .= ',';
-
-	# prepare for the import
-	$db = database();
-	$import_sql = <<<IMPORT_SQL
-insert into $table set
-$extra_sql
-$param_sql
-on duplicate key update
-$extra_sql
-$param_sql
-IMPORT_SQL;
-	$stmt = $db->prepare($import_sql);
-
-	# iterate through the rows importing each one
-	while ($row = fgetcsv($input, 1024)) {
-		$stmt->execute(array_combine($columns, $row));
-		$stmt->closeCursor();
-	}
-
-	# clean up
-	fclose($input);
+	$importer = new BulkImport($parser, $table);
+	$importer->setUpdate(true);
+	$importer->setExtraSql($extra_sql);
+	$importer->run();
 }
 
 // import rows that are known to not exist
 function bulk_import_csv($source, $table, $allowed_fields, $extra_sql = '') {
-	if (is_string($allowed_fields)) {
-		$allowed_fields = explode(',', $allowed_fields);
-	}
+	$parser = new CsvIterator($source);
+	$parser->setAllowedFields($allowed_fields);
 
-	$input = fopen($source, 'r');
-
-	# read the csv header line
-	$columns = stream_get_line($input, 1024, "\n");
-	$columns_arr = explode(',', $columns);
-
-	# validate the list of fields
-	$disallowed_fields = array_diff($columns_arr, $allowed_fields);
-	if (count($disallowed_fields) != 0) {
-		header('HTTP/1.0 403 Forbidden');
-		die("Disallowed fields: " . implode(',', $disallowed_fields));
-	}
-
-	# save the rest of the csv to a temporary file
-	$tmpfile = tempnam("/tmp", "infiniterooms.$table.dataload.csv");
-	$tmp = fopen($tmpfile, 'w');
-	stream_copy_to_stream($input, $tmp);
-	fclose($tmp);
-	fclose($input);
-
-	# setup for rapid import
-	$db = database();
-	$db->exec("set unique_checks = 0");
-	$db->exec("set foreign_key_checks = 0");
-	#$db->exec("set sql_log_bin = 0"); # only if super!
-	$db->exec("lock tables $table write");
-
-	if (!empty($extra_sql)) $extra_sql = 'set ' . $extra_sql;
-
-	# perform the import
-	$import_sql = <<<IMPORT_SQL
-load data local infile '$tmpfile'
-ignore
-into table $table
-fields terminated by ','
-optionally enclosed by '"'
-lines terminated by '\n'
-($columns)
-$extra_sql
-IMPORT_SQL;
-	$db->exec($import_sql);
-	$db->exec("unlock tables");
-
-	# clean up temporary files
-	unlink($tmpfile);
-}
-
-# due to a bug in PHP, we cannot use "load data local" directly so shell out to mysqlimport instead
-# http://stackoverflow.com/questions/13016797/load-data-local-infile-fails-from-php-to-mysql-on-amazon-rds
-function bulk_import_csv_mysqlimport($source, $table, $allowed_fields) {
-	$mysqlimport = '/usr/local/bin/mysqlimport';
-
-	$dbcfg = database_config();
-	$dbname = $dbcfg['database'];
-
-	if (is_string($allowed_fields)) {
-		$allowed_fields = explode(',', $allowed_fields);
-	}
-
-	$input = fopen($source, 'r');
-
-	# read the csv header line
-	$columns = stream_get_line($input, 1024, "\n");
-	$columns_arr = explode(',', $columns);
-
-	# validate the list of fields
-	$disallowed_fields = array_diff($columns_arr, $allowed_fields);
-	if (count($disallowed_fields) != 0) {
-		header('HTTP/1.0 403 Forbidden');
-		die("Disallowed fields: " . implode(',', $disallowed_fields));
-	}
-
-	# save the rest of the csv to a temporary file
-	$tmpfile = tempnam("/tmp", "$table.dataload.csv");
-	$tmp = fopen($tmpfile, 'w');
-	stream_copy_to_stream($input, $tmp);
-	fclose($tmp);
-	fclose($input);
-
-	# save the mysql connection details to a file
-	$mycnf_data = database_config_file();
-	$mycnf_data .= <<<MYCNF
-	[mysqlimport]
-	local=true
-	columns=$columns
-	fields-terminated-by=,
-	fields-optionally-enclosed-by="
-	ignore=true
-	use-threads=1
-	lock-tables=true
-MYCNF;
-	$mycnf_file = tempnam("/tmp", "$table.dataload.cnf");
-	file_put_contents($mycnf_file, $mycnf_data);
-
-	passthru("$mysqlimport --defaults-extra-file=$mycnf_file $dbname $tmpfile 2>&1");
-
-	unlink($mycnf_file);
-	unlink($tmpfile);
-
-}
-
-function database_config_file() {
-        $dbcfg = database_config();
-	$cnf = "[client]\n";
-	$cnf .= 'host=' . $dbcfg['host'] . "\n";
-	$cnf .= 'user=' . $dbcfg['login'] . "\n";
-	$cnf .= 'pass=' . $dbcfg['password'] . "\n";
-	return $cnf;
+	$importer = new BulkImport($parser);
+	$importer->setUpdate(false);
+	$importer->setExtraSql($extra_sql);
+	$importer->run();
 }
 
 ?>
