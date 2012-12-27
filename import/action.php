@@ -26,7 +26,7 @@ function translate_date($datetime_in) {
 		die("Failed to parse date $datetime_in as " . DateTime::RFC3339 . " due to " . $errors['errors'][0]);
 	}
 	$datetime->setTimezone($utc);
-	return $datetime;
+	return $datetime->format('Y-m-d H:i:s');
 }
 
 function query_value($query, $params = array()) {
@@ -53,16 +53,18 @@ $parser->setOptionalFields(array('module', 'group'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	return array(
-		'when' => translate_date($row['when']),
-		'action' => $row['action'],
-		'user' => translate_id('users', $row['user']),
-		'module' => translate_id('modules', $row['module']),
-		'group' => translate_id('groups', $row['group']),
+		'time' => translate_date($row['when']),
+		'name' => $row['action'],
+		'user_id' => translate_id('users', $row['user']),
+		'module_id' => translate_id('modules', $row['module']),
+		'group_id' => translate_id('groups', $row['group']),
 	);
 });
 
-$importer = new BulkImport($translator, $table);
+$importer = new BulkImport($translator, 'actions');
+$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id'));
 $importer->setUpdate(true);
-$importer->setExtraSql("system_id = $system_id, modified = now()");
+$importer->setExtraSql("system_id = $system_id");
 $importer->run();
 
+?>
