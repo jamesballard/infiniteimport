@@ -7,6 +7,8 @@ class BulkImport {
 	private $fields;
 	private $extra_sql;
 	private $update = false;
+	private $system_specific = false;
+	private $dated = false;
 
 	public function __construct($parser, $table) {
 		if (!is_a($parser, 'Iterator')) throw new LogicException("Parser must be an Iterator");
@@ -32,10 +34,22 @@ class BulkImport {
 		$this->fields = $fields;
 	}
 
+	public function setSystemSpecific($system_specific) {
+		$this->system_specific = $system_specific;
+	}
+
+	public function setDated($dated) {
+		$this->dated = $dated;
+	}
+
 	protected function buildSql() {
 		# build parameter list
 		$param_sql = '';
 		if (!empty($this->extra_sql)) $param_sql .= $this->extra_sql . ', ';
+		if ($this->system_specific) {
+			$system_id = get_system_id();
+			$param_sql .= "system_id = $system_id, ";
+		}
 		$fields = $this->getFields();
 		foreach($fields as $col) {
 			$param_sql .= "$col = :$col, ";
@@ -46,9 +60,11 @@ class BulkImport {
 		$sql = "insert into $this->table ";
 		if (!$this->update) $sql .= 'ignore ';
 		$sql .= 'set ';
+		if ($this->dated == true) $sql .= 'created = now(), modified = now(), ';
 		$sql .= $param_sql . ' ';
 		if ($this->update) {
 			$sql .= 'on duplicate key update ';
+			if ($this->dated == true) $sql .= 'modified = now(), ';
 			$sql .= $param_sql . ' ';
 		}
 

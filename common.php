@@ -4,6 +4,7 @@ require_once 'database.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'CsvIterator.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'BulkImport.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'CallbackMappingIterator.php';
+require_once 'lib' . DIRECTORY_SEPARATOR . 'IdManager.php';
 
 function database_config() {
 	$dbcfg_holder = new DATABASE_CONFIG();
@@ -99,24 +100,6 @@ function query_value($query, $params = array()) {
 	$result = $stmt->fetchColumn();
 	$stmt->closeCursor();
 	return $result;
-}
-
-function translate_id($type, $sysid) {
-	if (empty($sysid)) return null;
-
-	$key = "ir_${type}_${sysid}";
-	$id = apc_fetch($key);
-	if ($id === false) {
-		$id = query_value("select id from $type where sysid = ?", array($sysid));
-		if ($id === false) {
-			print "Warning $type not found with id $sysid\n";
-			$id = null;
-		} else {
-			apc_add($key, $id);
-		}
-	}
-	#print "Debug translated $type $sysid to $id\n";
-	return $id;
 }
 
 ?>

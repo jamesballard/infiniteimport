@@ -13,11 +13,14 @@ dob: yyyy-mm-dd, optional
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
-# load the data
-$system_id = get_system_id();
-bulk_update_csv('php://input',
-	'users',
-	'sysid,username,name,gender,dob',
-	"system_id = $system_id, modified = now()");
+$parser = new CsvIterator('php://input');
+$parser->setRequiredFields(array('sysid'));
+$parser->setOptionalFields(array('username', 'name', 'gender', 'dob'));
+
+$importer = new BulkImport($parser, 'users');
+$importer->setUpdate(true);
+$importer->setSystemSpecific(true);
+$importer->setDated(true);
+$importer->run();
 
 ?>
