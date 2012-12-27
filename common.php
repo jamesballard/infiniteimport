@@ -2,6 +2,8 @@
 
 require_once 'database.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'CsvIterator.php';
+require_once 'lib' . DIRECTORY_SEPARATOR . 'BulkImport.php';
+require_once 'lib' . DIRECTORY_SEPARATOR . 'CallbackMappingIterator.php';
 
 function database_config() {
 	$dbcfg_holder = new DATABASE_CONFIG();
@@ -9,7 +11,13 @@ function database_config() {
 }
 
 function database() {
-        $cfg = database_config();
+	global $db;
+	if (is_null($db)) $db = new_database();
+	return $db;
+}
+
+function new_database() {
+	$cfg = database_config();
 	$db_url = "mysql:host=" . $cfg['host'] . ";dbname=" . $cfg['database'];
 	$db = new PDO($db_url, $cfg['login'], $cfg['password'], array(
 		//PDO::ATTR_PERSISTENT => true, // have to worry about connection state
@@ -48,61 +56,6 @@ function get_system_id() {
 	}	
 
 	return $server_id;
-}
-
-class BulkImport {
-
-	private $parser;
-	private $table;
-	private $extra_sql;
-	private $update = false;
-
-	public function __construct($parser, $table) {
-		$this->parser = $parser;
-		$this->table = $table;
-	}
-
-	public function setExtraSql($extra_sql) {
-		$this->extra_sql = $extra_sql;
-	}
-
-	public function setUpdate($update) {
-		$this->update = $update;
-	}
-
-	protected function buildSql() {
-		# build parameter list
-		$param_sql = '';
-		if (!empty($this->extra_sql)) $param_sql .= $this->extra_sql . ',';
-		$fields = $this->parser->getFields();
-		foreach($fields as $col) {
-			$param_sql .= "$col = :$col,";
-		}
-		$param_sql = rtrim($param_sql, ',');
-
-		# prepare for the import
-		$sql = "insert into $this->table ";
-		if (!$this->update) $sql .= 'ignore ';
-		$sql .= 'set ';
-		$sql .= $param_sql . ' ';
-		if ($this->update) {
-			$sql .= 'on duplicate key update ';
-			$sql .= $param_sql . ' ';
-		}
-		return $sql;
-	}
-
-	public function run() {
-		$sql = $this->buildSql();
-		$db = database();
-		$stmt = $db->prepare($sql);
-
-		foreach($this->parser as $row) {
-			$stmt->execute($row);
-			$stmt->closeCursor();
-		}
-	}
-
 }
 
 // import new or updated rows

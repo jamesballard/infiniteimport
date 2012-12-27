@@ -82,7 +82,7 @@ class CsvIterator implements Iterator {
 		if (!is_null($this->required_fields)) {
 			$missing_fields = array_diff($this->required_fields, $this->fields);
 			if (count($missing_fields) != 0) {
-				header('HTTP/1.0 403 Forbidden');
+				header('HTTP/1.0 400 Bad Request');
 				die("Missing required fields: " . implode(',', $missing_fields));
 			}
 		}
@@ -91,7 +91,7 @@ class CsvIterator implements Iterator {
 		if (!is_null($allowed_fields)) {
 			$disallowed_fields = array_diff($this->fields, $allowed_fields);
 			if (count($disallowed_fields) != 0) {
-				header('HTTP/1.0 403 Forbidden');
+				header('HTTP/1. 400 Bad Request');
 				die("Disallowed fields: " . implode(',', $disallowed_fields));
 			}
 		}
