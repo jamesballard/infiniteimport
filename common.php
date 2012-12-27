@@ -80,4 +80,43 @@ function bulk_import_csv($source, $table, $allowed_fields, $extra_sql = '') {
 	$importer->run();
 }
 
+function translate_date($datetime_in) {
+	$utc = new DateTimeZone('UTC');
+	$datetime = DateTime::createFromFormat(DateTime::RFC3339, $datetime_in, $utc);
+	if (!$datetime) {
+		$errors = DateTime::getLastErrors();
+		header('HTTP/1. 400 Bad Request');
+		die("Failed to parse date $datetime_in as " . DateTime::RFC3339 . " due to " . $errors['errors'][0]);
+	}
+	$datetime->setTimezone($utc);
+	return $datetime->format('Y-m-d H:i:s');
+}
+
+function query_value($query, $params = array()) {
+	$db = database();
+	$stmt = $db->prepare($query);
+	$stmt->execute($params);
+	$result = $stmt->fetchColumn();
+	$stmt->closeCursor();
+	return $result;
+}
+
+function translate_id($type, $sysid) {
+	if (empty($sysid)) return null;
+
+	$key = "ir_${type}_${sysid}";
+	$id = apc_fetch($key);
+	if ($id === false) {
+		$id = query_value("select id from $type where sysid = ?", array($sysid));
+		if ($id === false) {
+			print "Warning $type not found with id $sysid\n";
+			$id = null;
+		} else {
+			apc_add($key, $id);
+		}
+	}
+	#print "Debug translated $type $sysid to $id\n";
+	return $id;
+}
+
 ?>

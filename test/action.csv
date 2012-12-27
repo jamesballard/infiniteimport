@@ -1,4 +1,4 @@
-when,action,user,module,group
+time,action,user,module,group
 2012-12-11T01:22:25Z,login,1,,
 2012-12-11T01:24:30Z,view,1,course_2,
 2012-12-11T01:25:12Z,join,1,,group_5
