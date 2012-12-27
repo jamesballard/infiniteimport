@@ -108,7 +108,7 @@ class BulkImport {
 // import new or updated rows
 function bulk_update_csv($source, $table, $allowed_fields, $extra_sql = '') {
 	$parser = new CsvIterator($source);
-	$parser->setAllowedFields($allowed_fields);
+	$parser->setOptionalFields($allowed_fields);
 
 	$importer = new BulkImport($parser, $table);
 	$importer->setUpdate(true);
@@ -119,7 +119,7 @@ function bulk_update_csv($source, $table, $allowed_fields, $extra_sql = '') {
 // import rows that are known to not exist
 function bulk_import_csv($source, $table, $allowed_fields, $extra_sql = '') {
 	$parser = new CsvIterator($source);
-	$parser->setAllowedFields($allowed_fields);
+	$parser->setOptionalFields($allowed_fields);
 
 	$importer = new BulkImport($parser);
 	$importer->setUpdate(false);

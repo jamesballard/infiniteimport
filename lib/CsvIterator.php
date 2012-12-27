@@ -2,7 +2,8 @@
 
 class CsvIterator implements Iterator {
 
-	private $allowed_fields;
+	private $required_fields = null;
+	private $optional_fields = null;
 	private $input;
 	private $fields;
 	private $position = -1;
@@ -55,16 +56,40 @@ class CsvIterator implements Iterator {
 		return !is_null($this->row);
 	}
 
-	public function setAllowedFields($allowed_fields) {
-		if (is_string($allowed_fields)) {
-			$allowed_fields = explode(',', $allowed_fields);
+	public function setRequiredFields($required_fields) {
+		$this->required_fields = $required_fields;
+	}
+
+	public function setOptionalFields($optional_fields) {
+		$this->optional_fields = $optional_fields;
+	}
+
+	public function getAllowedFields() {
+		# if neither constraint is specified, allow everything
+		if (is_null($this->required_fields) && is_null($this->optional_fields)) {
+			return null;
 		}
-		$this->allowed_fields = $allowed_fields;
+
+		$allowed_fields = array();
+		if (!is_null($this->required_fields)) $allowed_fields = array_merge($allowed_fields, $this->required_fields);
+		if (!is_null($this->optional_fields)) $allowed_fields = array_merge($allowed_fields, $this->optional_fields);
+		$allowed_fields = array_unique($allowed_fields);
+
+		return $allowed_fields;
 	}
 
 	protected function validateHeader() {
-		if (isset($this->allowed_fields)) {
-			$disallowed_fields = array_diff($this->fields, $this->allowed_fields);
+		if (!is_null($this->required_fields)) {
+			$missing_fields = array_diff($this->required_fields, $this->fields);
+			if (count($missing_fields) != 0) {
+				header('HTTP/1.0 403 Forbidden');
+				die("Missing required fields: " . implode(',', $missing_fields));
+			}
+		}
+
+		$allowed_fields = $this->getAllowedFields();
+		if (!is_null($allowed_fields)) {
+			$disallowed_fields = array_diff($this->fields, $allowed_fields);
 			if (count($disallowed_fields) != 0) {
 				header('HTTP/1.0 403 Forbidden');
 				die("Disallowed fields: " . implode(',', $disallowed_fields));

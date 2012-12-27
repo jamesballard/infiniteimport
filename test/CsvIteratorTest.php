@@ -31,7 +31,7 @@ class CsvIteratorTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllowedFields() {
 		$parser = new CsvIterator($this->csvfile);
-		$parser->setAllowedFields(array('a', 'b', 'c'));
+		$parser->setRequiredFields(array('a', 'b', 'c'));
 		foreach($parser as $key => $row);
 	}
 
