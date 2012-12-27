@@ -30,6 +30,7 @@ function translate_date($datetime_in) {
 }
 
 function query_value($query, $params = array()) {
+	$db = database();
 	$stmt = $db->prepare($query);
 	$stmt->execute($params);
 	$result = $stmt->fetchColumn();
@@ -38,12 +39,20 @@ function query_value($query, $params = array()) {
 }
 
 function translate_id($type, $sysid) {
+	if (empty($sysid)) return null;
+
 	$key = "ir_${type}_${sysid}";
 	$id = apc_fetch($key);
-	if (is_null($id)) {
+	if ($id === false) {
 		$id = query_value("select id from $type where sysid = ?", array($sysid));
-		if (!is_null($id)) apc_add($key, $id);
+		if ($id === false) {
+			print "Warning $type not found with id $sysid\n";
+			$id = null;
+		} else {
+			apc_add($key, $id);
+		}
 	}
+	#print "Debug translated $type $sysid to $id\n";
 	return $id;
 }
 
