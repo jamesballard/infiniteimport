@@ -83,15 +83,23 @@ function bulk_import_csv($source, $table, $allowed_fields, $extra_sql = '') {
 }
 
 function translate_date($datetime_in) {
+	return convert_date(DateTime::RFC3339, 'Y-m-d H:i:s', $datetime_in);
+}
+
+function translate_date_from_db($datetime_in) {
+	return convert_date('Y-m-d H:i:s', DateTime::RFC3339, $datetime_in);
+}
+
+function convert_date($format_in, $format_out, $datetime_in) {
 	$utc = new DateTimeZone('UTC');
-	$datetime = DateTime::createFromFormat(DateTime::RFC3339, $datetime_in, $utc);
+	$datetime = DateTime::createFromFormat($format_in, $datetime_in, $utc);
 	if (!$datetime) {
 		$errors = DateTime::getLastErrors();
 		header('HTTP/1. 400 Bad Request');
-		die("Failed to parse date $datetime_in as " . DateTime::RFC3339 . " due to " . $errors['errors'][0]);
+		die("Failed to parse date $datetime_in as " . $format_in . " due to " . $errors['errors'][0]);
 	}
 	$datetime->setTimezone($utc);
-	return $datetime->format('Y-m-d H:i:s');
+	return $datetime->format($format_out);
 }
 
 function query_value($query, $params = array()) {
