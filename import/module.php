@@ -1,13 +1,8 @@
 <?php
 
 /*
-if not explicitly stated, the field is optional
-a blank value is treated as unspecified
-all ids are assigned by the source system
-
 sysid: string, required, private id within source system
 name: string, optional, what the module is known as
-
 */
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';

@@ -1,10 +1,6 @@
 <?php
 
 /*
-if not explicitly stated, the field is optional
-a blank value is treated as unspecified
-all ids are assigned by the source system
-
 time: date and time of action in RFC3339 format (based on ISO8601), in UTC time only.
 action: string, required, the action being performed, typically described by a verb (e.g. login)
 user: string, required, initiator of the action
