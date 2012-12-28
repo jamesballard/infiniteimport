@@ -30,7 +30,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 
 $importer = new BulkImport($translator, 'actions');
 $importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id'));
-$importer->setUpdate(true);
+$importer->setUpdate(false); # disallow updates, for performance
 $importer->setSystemSpecific(true);
 $importer->run();
 

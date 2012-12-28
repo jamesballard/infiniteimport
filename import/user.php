@@ -18,7 +18,6 @@ $parser->setRequiredFields(array('sysid'));
 $parser->setOptionalFields(array('username', 'name', 'gender', 'dob'));
 
 $importer = new BulkImport($parser, 'users');
-$importer->setUpdate(true);
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
 $importer->run();

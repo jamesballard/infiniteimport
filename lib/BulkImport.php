@@ -6,7 +6,8 @@ class BulkImport {
 	private $table;
 	private $fields;
 	private $extra_sql;
-	private $update = false;
+	# allow changes to existing rows? potentially faster if we don't
+	private $update = true;
 	private $system_specific = false;
 	private $dated = false;
 
@@ -57,9 +58,9 @@ class BulkImport {
 		$param_sql = rtrim($param_sql, ', ');
 
 		# prepare for the import
-		$sql = "insert into $this->table ";
-		if (!$this->update) $sql .= 'ignore ';
-		$sql .= 'set ';
+		$sql = "insert ";
+		if (!$this->update) $sql .= "ignore ";
+		$sql .= "into $this->table set ";
 		if ($this->dated == true) $sql .= 'created = now(), modified = now(), ';
 		$sql .= $param_sql . ' ';
 		if ($this->update) {
@@ -75,10 +76,18 @@ class BulkImport {
 		# use a new database connection, because this may overlap other queries
 		$sql = $this->buildSql();
 		$db = new_database();
-		$stmt = $db->prepare($sql);
+		try {
+			$stmt = $db->prepare($sql);
+		} catch (PDOException $e) {
+			throw new DatabaseException($e->getMessage(), $sql);
+		}
 
 		foreach($this->parser as $row) {
-			$stmt->execute($row);
+			try {
+				$stmt->execute($row);
+			} catch (PDOException $e) {
+				throw new DatabaseException($e->getMessage(), $sql, $row);
+			}
 			$stmt->closeCursor();
 		}
 	}

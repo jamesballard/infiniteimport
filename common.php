@@ -1,6 +1,7 @@
 <?php
 
 require_once 'database.php';
+require_once 'lib' . DIRECTORY_SEPARATOR . 'DatabaseException.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'CsvIterator.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'BulkImport.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'CallbackMappingIterator.php';
