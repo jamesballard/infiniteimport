@@ -35,7 +35,6 @@ function get_system_id() {
 
 	if (empty($client_cert)) {
 		header('HTTP/1.0 403 Forbidden');
-		phpinfo();
 		die('SSL client certificate required');
 	}
 
