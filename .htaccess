@@ -7,3 +7,4 @@ RewriteRule .* $0.php [QSA,L]
 # We're trusting the crypto rather than the subject, so it does not have to
 # come from a trusted certificate authority.
 SSLVerifyClient optional_no_ca
+SSLOptions +ExportCertData
