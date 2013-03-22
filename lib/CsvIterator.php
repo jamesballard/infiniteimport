@@ -47,7 +47,12 @@ class CsvIterator implements Iterator {
 	public function next() {
 		$this->row = null;
 		$values = fgetcsv($this->input, 1024);
-		if ($values) $this->row = array_combine($this->fields, $values);
+		if ($values) {
+			if (count($values) != count($this->fields)) {
+				throw new ValidationException("Wrong number of fields " . count($values) . " expected " . count($this->fields));
+			}
+			$this->row = array_combine($this->fields, $values);
+		}
 		$this->position++;
 		return $this->row;
 	}
@@ -82,8 +87,7 @@ class CsvIterator implements Iterator {
 		if (!is_null($this->required_fields)) {
 			$missing_fields = array_diff($this->required_fields, $this->fields);
 			if (count($missing_fields) != 0) {
-				header('HTTP/1.0 400 Bad Request');
-				die("Missing required fields: " . implode(',', $missing_fields));
+				throw new ValiationException("Missing required fields: " . implode(',', $missing_fields));
 			}
 		}
 
@@ -91,8 +95,7 @@ class CsvIterator implements Iterator {
 		if (!is_null($allowed_fields)) {
 			$disallowed_fields = array_diff($this->fields, $allowed_fields);
 			if (count($disallowed_fields) != 0) {
-				header('HTTP/1. 400 Bad Request');
-				die("Disallowed fields: " . implode(',', $disallowed_fields));
+				throw new ValiationException("Disallowed fields: " . implode(',', $disallowed_fields));
 			}
 		}
 	}

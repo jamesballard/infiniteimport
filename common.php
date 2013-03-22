@@ -2,10 +2,18 @@
 
 require_once 'database.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'DatabaseException.php';
+require_once 'lib' . DIRECTORY_SEPARATOR . 'ValidationException.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'CsvIterator.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'BulkImport.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'CallbackMappingIterator.php';
 require_once 'lib' . DIRECTORY_SEPARATOR . 'IdManager.php';
+
+function exception_handler($e) {
+	header('HTTP/1.0 400 Bad Request');
+	print $e->getMessage() . "\n";
+	exit();
+}
+set_exception_handler('exception_handler');
 
 function database_config() {
 	$dbcfg_holder = new DATABASE_CONFIG();
