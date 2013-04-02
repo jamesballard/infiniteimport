@@ -5,13 +5,25 @@ class IdManager {
 	/**
 	 * Convert a local application/system id.
 	 */
-	public static function fromApplication($type, $sysid) {
+	public static function fromApplication($type, $sysid, $options = array()) {
 		if (empty($sysid)) return null;
+		
+		$sysid_field = 'sysid';
+		if (array_key_exists('field', $options)) $sysid_field = $options['field'];
+		
+		$create = false;
+		if (array_key_exists('create', $options)) $create = $options['create'];
 
 		$key = IdManager::cacheKey($type, $sysid);
 		$id = apc_fetch($key);
 		if ($id === false) {
-			$id = query_value("select id from $type where sysid = ?", array($sysid));
+			$id = query_value("select id from $type where $sysid_field = ?", array($sysid));
+			
+			if ($id === false && $create) {
+				sql_execute("insert into $type set $sysid_field = ?", array($sysid));
+				$id = query_value("select id from $type where $sysid_field = ?", array($sysid));
+			}
+			
 			if ($id === false) {
 				print "Warning $type not found with id $sysid\n";
 				$id = null;
@@ -19,12 +31,16 @@ class IdManager {
 				apc_add($key, $id);
 			}
 		}
+		
 		#print "Debug translated $type $sysid to $id\n";
 		return $id;
 	}
 
-	public static function toApplication($type, $id) {
-		$sysid = query_value("select sysid from $type where id = ?", array($id));
+	public static function toApplication($type, $id, $options = array()) {
+		$sysid_field = 'sysid';
+		if (array_key_exists('field', $options)) $sysid_field = $options['field'];
+		
+		$sysid = query_value("select $sysid_field from $type where id = ?", array($id));
 		return $sysid;
 	}
 

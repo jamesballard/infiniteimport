@@ -118,4 +118,11 @@ function query_value($query, $params = array()) {
 	return $result;
 }
 
+function sql_execute($query, $params = array()) {
+	$db = database();
+	$stmt = $db->prepare($query);
+	$stmt->execute($params);
+	$stmt->closeCursor();
+}
+
 ?>
