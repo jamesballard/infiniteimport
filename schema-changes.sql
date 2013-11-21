@@ -9,3 +9,8 @@ ALTER TABLE users ADD UNIQUE INDEX system_sysid_ix (system_id, sysid);
 
 ALTER TABLE modules ADD COLUMN created DATETIME NULL;
 ALTER TABLE modules ADD COLUMN modified DATETIME NULL AFTER created;
+
+ALTER TABLE artefacts ADD COLUMN sysid varchar(255) AFTER id;
+ALTER TABLE artefacts ADD COLUMN system_id int(11) unsigned;
+ALTER TABLE artefacts ADD CONSTRAINT FK_artefacts_systems FOREIGN KEY (system_id) REFERENCES systems (id);
+ALTER TABLE artefacts ADD UNIQUE INDEX system_sysid_ix (system_id, sysid);
