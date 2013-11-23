@@ -67,6 +67,14 @@ function get_system_id() {
 	return $server_id;
 }
 
+function get_customer_id() {
+	$system_id = get_system_id();
+	$db = database();
+	$stmt = $db->prepare('select customer_id from systems where id = :system_id');
+	$stmt->execute(array(':system_id' => $system_id));
+	return $stmt->fetchColumn();
+}
+
 // import new or updated rows
 function bulk_update_csv($source, $table, $allowed_fields, $extra_sql = '') {
 	$parser = new CsvIterator($source);
