@@ -30,13 +30,14 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 
 $importer = new BulkImport($translator, 'actions');
 $importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'sysinfo'));
-$importer->setUpdate(false); # disallow updates, for performance
+$importer->setUpdate(false); # disallow updates, and the extra sql depends on it
 $importer->setSystemSpecific(true);
-$ipType = 1;
+$conditionIpType = 2;
+$conditionIpName = 'IP Address';
 $importer->setExtraSqlPostRow("
 	set @action_id = last_insert_id();
-	insert ignore into conditions set type = $ipType, name = :userIp, created = now(), modified = now();
-	set @condition_id = (select id from conditions where type = $ipType and name = :userIp);
+	insert ignore into conditions set type = $conditionIpType, name = '$conditionIpName', value = :userIp, created = now(), modified = now();
+	set @condition_id = (select id from conditions where type = $conditionIpType and name = '$conditionIpName' and value = :userIp);
 	insert ignore into action_conditions set action_id = @action_id, condition_id = @condition_id, created = now(), modified = now();
 ");
 $importer->run();
