@@ -4,7 +4,7 @@
 time: date and time of action in RFC3339 format (based on ISO8601), in UTC time only.
 action: string, required, the action being performed, typically described by a verb (e.g. login)
 user: string, required, initiator of the action
-userIp: string, optional, IP address of initiator of the action
+user_ip: string, optional, IP address of initiator of the action
 module: string, optional, affected module
 group: string, optional, affected group
 sysinfo: string, optional, system specific additional information
@@ -24,7 +24,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'module_id' => IdManager::fromApplication('modules', @$row['module']),
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
 		'sysinfo' => @$row['sysinfo'],
-		'userIp'=> @$row['userIp'],
+		'user_ip'=> @$row['user_ip'],
 	);
 });
 
@@ -36,8 +36,8 @@ $conditionIpType = 2;
 $conditionIpName = 'IP Address';
 $importer->setExtraSqlPostRow("
 	set @action_id = last_insert_id();
-	insert ignore into conditions set type = $conditionIpType, name = '$conditionIpName', value = :userIp, created = now(), modified = now();
-	set @condition_id = (select id from conditions where type = $conditionIpType and name = '$conditionIpName' and value = :userIp);
+	insert ignore into conditions set type = $conditionIpType, name = '$conditionIpName', value = :user_ip, created = now(), modified = now();
+	set @condition_id = (select id from conditions where type = $conditionIpType and name = '$conditionIpName' and value = :user_ip);
 	insert ignore into action_conditions set action_id = @action_id, condition_id = @condition_id, created = now(), modified = now();
 ");
 $importer->run();
