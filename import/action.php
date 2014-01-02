@@ -17,19 +17,24 @@ $parser->setRequiredFields(array('time', 'action', 'user'));
 $parser->setOptionalFields(array('module', 'group', 'sysinfo'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
+	$name = $row['action'];
+	if (!empty(@$row['module'])) $name = $row['module'] . ' ' . $row['action'];
+	
 	return array(
 		'time' => translate_date($row['time']),
-		'name' => $row['action'],
+		'name' => $name,
 		'user_id' => IdManager::fromApplication('users', $row['user']),
 		'module_id' => IdManager::fromApplication('modules', @$row['module']),
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
 		'sysinfo' => @$row['sysinfo'],
 		'user_ip'=> @$row['user_ip'],
+		'dimension_verb_id' => IdManager::fromApplication('dimension_verb', @$row['action'],
+			array('create' => true, 'field' => 'sysname')),
 	);
 });
 
 $importer = new BulkImport($translator, 'actions');
-$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'sysinfo'));
+$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'sysinfo', 'dimension_verb_id'));
 $importer->setUpdate(false); # disallow updates, and the extra sql depends on it
 $importer->setSystemSpecific(true);
 $conditionIpType = 2;
