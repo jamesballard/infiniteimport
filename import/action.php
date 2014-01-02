@@ -18,7 +18,7 @@ $parser->setOptionalFields(array('module', 'group', 'sysinfo'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	$name = $row['action'];
-	if (!empty(@$row['module'])) $name = $row['module'] . ' ' . $row['action'];
+	if (!empty($row['module'])) $name = $row['module'] . ' ' . $row['action'];
 	
 	return array(
 		'time' => translate_date($row['time']),
