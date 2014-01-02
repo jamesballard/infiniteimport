@@ -6,6 +6,7 @@ class BulkImport {
 	private $table;
 	private $fields;
 	private $extra_sql;
+	private $extra_sql_post_row;
 	# allow changes to existing rows? potentially faster if we don't
 	private $update = true;
 	private $system_specific = false;
@@ -21,6 +22,10 @@ class BulkImport {
 
 	public function setExtraSql($extra_sql) {
 		$this->extra_sql = $extra_sql;
+	}
+
+	public function setExtraSqlPostRow($extra_sql_post_row) {
+		$this->extra_sql_post_row = $extra_sql_post_row;
 	}
 
 	public function setUpdate($update) {
@@ -68,6 +73,9 @@ class BulkImport {
 			if ($this->dated == true) $sql .= 'modified = now(), ';
 			$sql .= $param_sql . ' ';
 		}
+		if ($this->extra_sql_post_row) {
+			$sql .= ';' . $this->extra_sql_post_row;
+		}
 
 		return $sql;
 	}
@@ -84,7 +92,7 @@ class BulkImport {
 
 		foreach($this->parser as $row) {
 			try {
-				$stmt->execute($row);
+				$affected_rows = $stmt->execute($row);
 			} catch (PDOException $e) {
 				throw new DatabaseException($e->getMessage(), $sql, $row);
 			}
