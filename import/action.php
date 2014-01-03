@@ -29,7 +29,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'sysinfo' => @$row['sysinfo'],
 		'user_ip'=> @$row['user_ip'],
 		'dimension_verb_id' => IdManager::fromApplication('dimension_verb', @$row['action'],
-			array('create' => true, 'field' => 'sysname')),
+			array('create' => true, 'field' => 'sysname')),	
 	);
 });
 
@@ -46,5 +46,14 @@ $importer->setExtraSqlPostRow("
 	insert ignore into action_conditions set action_id = @action_id, condition_id = @condition_id, created = now(), modified = now();
 ");
 $importer->run();
+
+sql_execute("
+	update actions a
+	inner join dimension_date d on d.date = date(a.time)
+	inner join dimension_time t on t.hour = hour(a.time)
+	set a.dimension_date_id = d.id,
+		a.dimension_time_id = t.id
+	where a.dimension_date_id is null
+");
 
 ?>
