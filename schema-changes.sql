@@ -10,3 +10,14 @@ ALTER TABLE users ADD UNIQUE INDEX system_sysid_ix (system_id, sysid);
 
 ALTER TABLE modules ADD COLUMN created DATETIME NULL;
 ALTER TABLE modules ADD COLUMN modified DATETIME NULL AFTER created;
+
+CREATE TABLE customer_keys (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  customer_id int(11) NOT NULL,
+  accesskey varchar(255) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY (accesskey),
+  INDEX customer_ix (customer_id),
+  FOREIGN KEY (customer_id) REFERENCES customers (id)
+    ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
