@@ -2,6 +2,7 @@
 
 /*
 sysid: string, required, private id within source system
+type: string, required, type of the record, 1 for LMS course
 name: string, optional, what the group is known as
 idnumber: string, optional, institutional id for the group
 */
@@ -9,7 +10,7 @@ idnumber: string, optional, institutional id for the group
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 $parser = new CsvIterator('php://input');
-$parser->setRequiredFields(array('sysid'));
+$parser->setRequiredFields(array('sysid', 'type'));
 $parser->setOptionalFields(array('name', 'idnumber'));
 
 $importer = new BulkImport($parser, 'groups');
