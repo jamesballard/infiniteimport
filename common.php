@@ -59,7 +59,7 @@ function get_system_id() {
 		$cert_cn = $cert_data['subject']['CN'];
 		$cert_email = @$cert_data['subject']['emailAddress'];
 
-		$stmt = $db->prepare('insert into systems (certificate, site_name, contact_email) values (:cert, :site, :email)');
+		$stmt = $db->prepare('insert into systems (certificate, site_name, contact_email, created) values (:cert, :site, :email, now())');
 		$stmt->execute(array(':cert' => $client_cert, ':site' => $cert_cn, ':email' => $cert_email));
 		$server_id = $db->lastInsertId();
 	}	
