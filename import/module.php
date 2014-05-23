@@ -9,8 +9,8 @@ artefact: string, optional, which artefact this module is part of
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 $parser = new CsvIterator('php://input');
-$parser->setRequiredFields(array('sysid'));
-$parser->setOptionalFields(array('name', 'artefact'));
+$parser->setRequiredFields(array('sysid', 'artefact'));
+$parser->setOptionalFields(array('name'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	return array(
