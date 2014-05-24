@@ -4,14 +4,14 @@
 sysid: string, required, private id within source system
 name: string, optional, what the module is known as
 artefact: string, required, which artefact this module is part of
-group: string, optional, which group this module is linked with
+group: string, required, which group this module is linked with
 */
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 $parser = new CsvIterator('php://input');
-$parser->setRequiredFields(array('sysid', 'artefact'));
-$parser->setOptionalFields(array('name', 'group'));
+$parser->setRequiredFields(array('sysid', 'artefact', 'group'));
+$parser->setOptionalFields(array('name'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	return array(
