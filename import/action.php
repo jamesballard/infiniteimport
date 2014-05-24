@@ -6,6 +6,7 @@ action: string, required, the action being performed, typically described by a v
 user: string, required, initiator of the action
 user_ip: string, optional, IP address of initiator of the action
 module: string, optional, affected module
+artefact: string optional, affect artefact
 group: string, optional, affected group
 sysinfo: string, optional, system specific additional information
 */
@@ -20,6 +21,11 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	$name = $row['action'];
 	if (!empty($row['module'])) $name = $row['module'] . ' ' . $row['action'];
 	
+	$artefact_id => IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'id'));
+	$verb = IdManager::fromApplication('dimension_verb',
+		array(@$row['action'], $artefact_id),
+		array('create' => true, 'field' => '(sysname,artefact_id)'));
+	
 	return array(
 		'time' => translate_date($row['time']),
 		'name' => $name,
@@ -28,8 +34,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
 		'sysinfo' => @$row['sysinfo'],
 		'user_ip'=> @$row['user_ip'],
-		'dimension_verb_id' => IdManager::fromApplication('dimension_verb', @$row['action'],
-			array('create' => true, 'field' => 'sysname')),	
+		'dimension_verb_id' => $verb,
 	);
 });
 
