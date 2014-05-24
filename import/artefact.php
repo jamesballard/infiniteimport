@@ -1,25 +1,26 @@
 <?php
 
 /*
-sysid: string, required, private id within source system
-name: string, optional, what the group is known as
-idnumber: string, optional, institutional id for the artefact
+sysname: string, required, what the artefact is uniquely referred to as
+name: string, optional, what the artefact is known as
 */
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 $parser = new CsvIterator('php://input');
-$parser->setRequiredFields(array('name'));
+$parser->setRequiredFields(array('sysname', 'name'));
 
 // save the list of artefact names so we can update the references after
 $artefacts = array();
 $interceptor = new CallbackMappingIterator($parser, function($key, $row) {
-	$artefacts[] = $row['name'];
+	$artefacts[] = $row['sysname'];
+	if (!$row['name']) $row['name'] = ucfirst($row['sysname']);
 	return $row;
 });
 
 // import the artefacts
 $importer = new BulkImport($interceptor, 'artefacts');
+// sysname
 $importer->setDated(true);
 $importer->run();
 
@@ -32,7 +33,7 @@ try {
 	$stmt = $db->prepare('
 		insert into customer_artefacts
 		set customer_id = :customer_id,
-			artefact_id = (select id from artefacts where name = :artefact_name),
+			artefact_id = (select id from artefacts where sysname = :artefact_name),
 			created = :now,
 			modified = :now
 		on duplicate key update
