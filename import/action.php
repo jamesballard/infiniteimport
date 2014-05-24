@@ -61,4 +61,10 @@ sql_execute("
 	where a.dimension_date_id is null
 ");
 
+sql_execute("
+	update dimension_verb
+	set name = CONCAT(UCASE(SUBSTRING(sysname, 1, 1)), SUBSTRING(sysname, 2))
+	where name is null
+");
+
 ?>
