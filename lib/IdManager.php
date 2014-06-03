@@ -50,6 +50,7 @@ class IdManager {
 
 	private static function cacheKey($type, $sysid) {
 		$system_id = get_system_id();
+		if (is_array($sysid)) $sysid = implode(',', $sysid);
 		return "ir_${system_id}_${type}_${sysid}";
 	}
 
