@@ -13,7 +13,7 @@ class IdManager {
 		if (array_key_exists('field', $options)) $sysid_field = $options['field'];
 		if (!is_array($sysid_field)) $sysid_field = array($sysid_field);
 		$sysid_field = '(' . implode(',', $sysid_field) . ')';
-		$sysid_var = preg_replace('/[a-z]+/i', '?', $sysid_field);
+		$sysid_var = preg_replace('/[a-z_]+/i', '?', $sysid_field);
 		
 		$create = false;
 		if (array_key_exists('create', $options)) $create = $options['create'];
