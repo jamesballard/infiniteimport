@@ -22,7 +22,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	$name = $row['action'];
 	if (!empty($row['artefact'])) $name = $row['artefact'] . ' ' . $row['action'];
 	
-	$artefact_id => IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'id'));
+	$artefact_id = IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'id'));
 	$verb = IdManager::fromApplication('dimension_verb',
 		array(@$row['action'], $artefact_id),
 		array('create' => true, 'field' => '(sysname,artefact_id)'));
