@@ -19,7 +19,7 @@ $parser->setOptionalFields(array('module', 'group', 'sysinfo'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	$name = $row['action'];
-	if (!empty($row['module'])) $name = $row['module'] . ' ' . $row['action'];
+	if (!empty($row['artefact'])) $name = $row['artefact'] . ' ' . $row['action'];
 	
 	$artefact_id => IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'id'));
 	$verb = IdManager::fromApplication('dimension_verb',
@@ -35,6 +35,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'sysinfo' => @$row['sysinfo'],
 		'user_ip'=> @$row['user_ip'],
 		'dimension_verb_id' => $verb,
+		'sysinfo' => @$row['sysinfo'],
 	);
 });
 
