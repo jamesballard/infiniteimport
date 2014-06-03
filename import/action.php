@@ -8,6 +8,7 @@ user_ip: string, optional, IP address of initiator of the action
 module: string, optional, affected module
 artefact: string optional, affect artefact
 group: string, optional, affected group
+sysid: string, optional, system specific identifier
 sysinfo: string, optional, system specific additional information
 */
 
@@ -15,7 +16,7 @@ require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 $parser = new CsvIterator('php://input');
 $parser->setRequiredFields(array('time', 'action', 'user'));
-$parser->setOptionalFields(array('module', 'group', 'sysinfo'));
+$parser->setOptionalFields(array('sysid', 'module', 'group', 'sysinfo'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	$name = $row['action'];
@@ -32,10 +33,10 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'user_id' => IdManager::fromApplication('users', $row['user']),
 		'module_id' => IdManager::fromApplication('modules', @$row['module']),
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
+		'sysid' => @$row['sysid'],
 		'sysinfo' => @$row['sysinfo'],
 		'user_ip'=> @$row['user_ip'],
 		'dimension_verb_id' => $verb,
-		'sysinfo' => @$row['sysinfo'],
 	);
 });
 
