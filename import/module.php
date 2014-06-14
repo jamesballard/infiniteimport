@@ -17,8 +17,8 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	return array(
 		'sysid' => $row['sysid'],
 		'name' => $row['name'],
-		'artefact_id' => IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'id', 'create' => true)),
-		'group_id' => IdManager::fromApplication('groups', $row['group'], array('field' => 'id', 'create' => true)),
+		'artefact_id' => IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'sysname')),
+		'group_id' => IdManager::fromApplication('groups', $row['group'], array('field' => 'sysid')),
 	);
 });
 
