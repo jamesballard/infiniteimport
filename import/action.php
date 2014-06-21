@@ -14,6 +14,8 @@ sysinfo: string, optional, system specific additional information
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
+$system_id = get_system_id();
+
 $parser = new CsvIterator('php://input');
 $parser->setRequiredFields(array('time', 'action', 'user'));
 $parser->setOptionalFields(array('sysid', 'module', 'group', 'sysinfo'));
@@ -27,11 +29,15 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		array(@$row['action'], $artefact_id ?: 0),
 		array('create' => true, 'field' => array('sysname','artefact_id')));
 	
+	$module_id = IdManager::fromApplication('modules',
+		array($system_id, @$row['module'], $artefact_id),
+		array('field' => array('system_id', 'sysid', 'artefact_id')));
+	
 	return array(
 		'time' => translate_date($row['time']),
 		'name' => $name,
 		'user_id' => IdManager::fromApplication('users', $row['user']),
-		'module_id' => IdManager::fromApplication('modules', @$row['module']),
+		'module_id' => $module_id,
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
 		'ip_id'=> IdManager::fromApplication('ips', @$row['user_ip']),
 		'sysid' => @$row['sysid'],
