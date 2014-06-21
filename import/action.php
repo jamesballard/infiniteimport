@@ -33,15 +33,15 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'user_id' => IdManager::fromApplication('users', $row['user']),
 		'module_id' => IdManager::fromApplication('modules', @$row['module']),
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
+		'ip_id'=> IdManager::fromApplication('ips', @$row['user_ip']),
 		'sysid' => @$row['sysid'],
 		'sysinfo' => @$row['sysinfo'],
-		'user_ip'=> @$row['user_ip'],
 		'dimension_verb_id' => $verb,
 	);
 });
 
 $importer = new BulkImport($translator, 'actions');
-$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'sysid', 'sysinfo', 'dimension_verb_id'));
+$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'ip_id', 'sysid', 'sysinfo', 'dimension_verb_id'));
 $importer->setUpdate(false); # disallow updates, and the extra sql depends on it
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
