@@ -25,6 +25,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 $importer = new BulkImport($translator, 'modules');
 $importer->setFields(array('sysid', 'name', 'artefact_id'));
 $importer->setSystemSpecific(true);
+$importer->setDated(true);
 $importer->run();
 
 ?>
