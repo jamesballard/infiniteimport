@@ -41,7 +41,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 });
 
 $importer = new BulkImport($translator, 'actions');
-$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'sysinfo', 'dimension_verb_id'));
+$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'sysid', 'sysinfo', 'dimension_verb_id'));
 $importer->setUpdate(false); # disallow updates, and the extra sql depends on it
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
