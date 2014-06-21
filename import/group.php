@@ -15,6 +15,7 @@ $parser->setOptionalFields(array('name', 'idnumber'));
 
 $importer = new BulkImport($parser, 'groups');
 $importer->setSystemSpecific(true);
+$importer->setDated(true);
 $importer->run();
 
 ?>
