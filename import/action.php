@@ -32,9 +32,10 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 			'create' => true, 'dated' => true));
 	
 	$module_id = null;
-	if (!empty(@$row['module'])) {
+	$module = @$row['module'];
+	if (!empty($module)) {
 		$module_id = IdManager::fromApplication('modules',
-			array($system_id, @$row['module'], $artefact_id ?: 0),
+			array($system_id, $module, $artefact_id ?: 0),
 			array('field' => array('system_id', 'sysid', 'artefact_id')));
 	}
 	
