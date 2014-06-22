@@ -9,7 +9,6 @@ module: string, optional, affected module
 artefact: string optional, affect artefact
 group: string, optional, affected group
 sysid: string, optional, system specific identifier
-sysinfo: string, optional, system specific additional information
 */
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
@@ -18,7 +17,7 @@ $system_id = get_system_id();
 
 $parser = new CsvIterator('php://input');
 $parser->setRequiredFields(array('time', 'action', 'user'));
-$parser->setOptionalFields(array('sysid', 'module', 'group', 'sysinfo'));
+$parser->setOptionalFields(array('sysid', 'module', 'group'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	$name = $row['action'];
@@ -49,13 +48,12 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'ip_id'=> IdManager::fromApplication('ips', @$row['user_ip'],
 			array('field' => 'ip', 'create' => true, 'dated' => true)),
 		'sysid' => @$row['sysid'],
-		'sysinfo' => @$row['sysinfo'],
 		'dimension_verb_id' => $verb,
 	);
 });
 
 $importer = new BulkImport($translator, 'actions');
-$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'ip_id', 'sysid', 'sysinfo', 'dimension_verb_id'));
+$importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', 'ip_id', 'sysid', 'dimension_verb_id'));
 $importer->setUpdate(false); # disallow updates, and the extra sql depends on it
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
