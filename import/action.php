@@ -27,7 +27,8 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	$artefact_id = IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'id'));
 	$verb = IdManager::fromApplication('dimension_verb',
 		array(@$row['action'], $artefact_id ?: 0),
-		array('create' => true, 'field' => array('sysname','artefact_id')));
+		array('field' => array('sysname','artefact_id'),
+			'create' => true, 'dated' => true));
 	
 	$module_id = IdManager::fromApplication('modules',
 		array($system_id, @$row['module'], $artefact_id ?: 0),
@@ -39,7 +40,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'user_id' => IdManager::fromApplication('users', $row['user']),
 		'module_id' => $module_id,
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
-		'ip_id'=> IdManager::fromApplication('ips', @$row['user_ip']),
+		'ip_id'=> IdManager::fromApplication('ips', @$row['user_ip'], array('create' => true, 'dated' => true)),
 		'sysid' => @$row['sysid'],
 		'sysinfo' => @$row['sysinfo'],
 		'dimension_verb_id' => $verb,
