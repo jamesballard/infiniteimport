@@ -27,7 +27,6 @@ $importer->run();
 
 // update the artefact references
 $customer_id = get_customer_id();
-$now = time();
 
 try {
 	$db = database();
@@ -35,10 +34,10 @@ try {
 		insert into customer_artefacts
 		set customer_id = :customer_id,
 			artefact_id = (select id from artefacts where sysname = :artefact_name),
-			created = :now,
-			modified = :now
+			created = now(),
+			modified = now()
 		on duplicate key update
-			modified = :now
+			modified = now()
 	');
 } catch (PDOException $e) {
 	throw new DatabaseException($e->getMessage(), $sql);
@@ -48,8 +47,7 @@ foreach($artefacts as $artefact_name) {
 	try {
 		$stmt->execute(array(
 			':customer_id' => $customer_id,
-			':artefact_name' => $artefact_name,
-			':now' => $now
+			':artefact_name' => $artefact_name
 		));
 	} catch (PDOException $e) {
 		throw new DatabaseException($e->getMessage(), $sql, $row);
