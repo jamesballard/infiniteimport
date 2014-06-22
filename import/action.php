@@ -30,7 +30,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		array('create' => true, 'field' => array('sysname','artefact_id')));
 	
 	$module_id = IdManager::fromApplication('modules',
-		array($system_id, @$row['module'], $artefact_id),
+		array($system_id, @$row['module'], $artefact_id ?: 0),
 		array('field' => array('system_id', 'sysid', 'artefact_id')));
 	
 	return array(
