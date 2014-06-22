@@ -34,7 +34,7 @@ class IdManager {
 			}
 			
 			if ($id === false) {
-				print "Warning $type not found with id " . implode(',', $sysid) . "\n";
+				print "Warning $type not found with ($sysid_field) of ($sysid_var)\n";
 				$id = null;
 			} else {
 				apc_add($key, $id);
