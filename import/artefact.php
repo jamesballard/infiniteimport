@@ -8,7 +8,8 @@ name: string, optional, what the artefact is known as
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 $parser = new CsvIterator('php://input');
-$parser->setRequiredFields(array('sysname', 'name'));
+$parser->setRequiredFields(array('sysname'));
+$parser->setOptionalFields(array('name'));
 
 // save the list of artefact names so we can update the references after
 $artefacts = array();
@@ -20,7 +21,7 @@ $interceptor = new CallbackMappingIterator($parser, function($key, $row) {
 
 // import the artefacts
 $importer = new BulkImport($interceptor, 'artefacts');
-// sysname
+$importer->setFields(array('sysname', 'name'));
 $importer->setDated(true);
 $importer->run();
 
