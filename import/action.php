@@ -25,14 +25,18 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 	if (!empty($row['artefact'])) $name = $row['artefact'] . ' ' . $row['action'];
 	
 	$artefact_id = IdManager::fromApplication('artefacts', $row['artefact'], array('field' => 'id'));
+
 	$verb = IdManager::fromApplication('dimension_verb',
 		array(@$row['action'], $artefact_id ?: 0),
 		array('field' => array('sysname','artefact_id'),
 			'create' => true, 'dated' => true));
 	
-	$module_id = IdManager::fromApplication('modules',
-		array($system_id, @$row['module'], $artefact_id ?: 0),
-		array('field' => array('system_id', 'sysid', 'artefact_id')));
+	$module_id = null;
+	if (!empty(@$row['module'])) {
+		$module_id = IdManager::fromApplication('modules',
+			array($system_id, @$row['module'], $artefact_id ?: 0),
+			array('field' => array('system_id', 'sysid', 'artefact_id')));
+	}
 	
 	return array(
 		'time' => translate_date($row['time']),
