@@ -46,7 +46,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'module_id' => $module_id,
 		'group_id' => IdManager::fromApplication('groups', @$row['group']),
 		'ip_id'=> IdManager::fromApplication('ips', @$row['user_ip'],
-			array('field' => 'id', 'create' => true, 'dated' => true)),
+			array('field' => 'ip', 'create' => true, 'dated' => true)),
 		'sysid' => @$row['sysid'],
 		'sysinfo' => @$row['sysinfo'],
 		'dimension_verb_id' => $verb,
