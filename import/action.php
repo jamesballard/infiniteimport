@@ -57,16 +57,6 @@ $importer->setFields(array('time', 'name', 'user_id', 'module_id', 'group_id', '
 $importer->setUpdate(false); # disallow updates, and the extra sql depends on it
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
-/*
-$conditionIpType = 2;
-$conditionIpName = 'IP Address';
-$importer->setExtraSqlPostRow("
-	set @action_id = last_insert_id();
-	insert ignore into conditions set type = $conditionIpType, name = '$conditionIpName', value = :user_ip, created = now(), modified = now();
-	set @condition_id = (select id from conditions where type = $conditionIpType and name = '$conditionIpName' and value = :user_ip);
-	insert ignore into action_conditions set action_id = @action_id, condition_id = @condition_id, created = now(), modified = now();
-");
-*/
 $importer->run();
 
 sql_execute("
