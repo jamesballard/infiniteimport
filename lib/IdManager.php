@@ -27,8 +27,8 @@ class IdManager {
 			$id = query_value("select id from $type where ($sysid_field) = ($sysid_var)", $sysid);
 			
 			if ($id === false && $create) {
-				$date_fields = $dated ? ',created' : '';
-				$date_vars = $dated ? ',now()' : '';
+				$date_fields = $dated ? ',created,modified' : '';
+				$date_vars = $dated ? ',now(),now()' : '';
 				sql_execute("insert into $type ($sysid_field$date_fields) values ($sysid_var$date_vars)", $sysid);
 				$id = query_value("select id from $type where ($sysid_field) = ($sysid_var)", $sysid);
 			}
