@@ -65,7 +65,7 @@ sql_execute("
 	inner join dimension_time t on t.hour = hour(a.time)
 	set a.dimension_date_id = d.id,
 		a.dimension_time_id = t.id
-	where a.dimension_date_id is null
+	where a.dimension_date_id = 0
 ");
 
 sql_execute("
