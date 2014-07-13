@@ -14,6 +14,7 @@ $parser->setOptionalFields(array('name'));
 // save the list of artefact names so we can update the references after
 $artefacts = array();
 $interceptor = new CallbackMappingIterator($parser, function($key, $row) {
+	global $artefacts;
 	$artefacts[] = $row['sysname'];
 	if (!$row['name']) $row['name'] = ucfirst($row['sysname']);
 	return $row;
