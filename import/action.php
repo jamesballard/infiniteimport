@@ -20,6 +20,8 @@ $parser->setRequiredFields(array('time', 'action', 'user'));
 $parser->setOptionalFields(array('sysid', 'module', 'group'));
 
 $translator = new CallbackMappingIterator($parser, function($key, $row) {
+	global $system_id;
+	
 	$name = $row['action'];
 	if (!empty($row['artefact'])) $name = $row['artefact'] . ' ' . $row['action'];
 	
