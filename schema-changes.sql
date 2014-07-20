@@ -21,3 +21,6 @@ CREATE TABLE customer_keys (
   FOREIGN KEY (customer_id) REFERENCES customers (id)
     ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+alter table actions drop key action_unique_ix;
+alter table actions add unique key action_unique_ix (system_id,time,user_id,group_id,module_id,dimension_verb_id,sysid);
