@@ -2,17 +2,26 @@
 
 /*
 sysid: string, required, private id within source system
-user_id: string, required, sysid of the user within source system
-group_id: string, required, sysid of the group within source system
+user: string, required, sysid of the user within source system
+group: string, required, sysid of the group within source system
 role: string, required, nature of the user-group relationship, e.g. Student
 */
 
 require_once dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'common.php';
 
 $parser = new CsvIterator('php://input');
-$parser->setRequiredFields(array('sysid', 'user_id', 'group_id', 'role'));
+$parser->setRequiredFields(array('sysid', 'user', 'group', 'role'));
 
-$importer = new BulkImport($parser, 'user_groups');
+$translator = new CallbackMappingIterator($parser, function($key, $row) {
+	return array(
+		'sysid' => @$row['sysid'],
+		'user_id' => IdManager::fromApplication('users', $row['user']),
+		'group_id' => IdManager::fromApplication('groups', $row['group']),
+		'role' => @$row['role']
+	);
+});
+
+$importer = new BulkImport($translator, 'user_groups');
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
 $importer->run();
