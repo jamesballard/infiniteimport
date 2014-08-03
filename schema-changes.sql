@@ -28,3 +28,4 @@ alter table actions add unique key action_unique_ix (system_id,time,user_id,grou
 alter table customer_artefacts add unique key customer_artefact_unique_ix (customer_id,artefact_id);
 
 alter table user_groups change id sysid int(11) unsigned;
+alter table group_categories add unique key group_categories_unique_ix (system_id, sysid);
