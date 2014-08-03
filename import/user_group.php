@@ -22,6 +22,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 });
 
 $importer = new BulkImport($translator, 'user_groups');
+$importer->setFields(array('sysid', 'user_id', 'group_id', 'role'));
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
 $importer->run();
