@@ -15,7 +15,18 @@ $parser = new CsvIterator('php://input');
 $parser->setRequiredFields(array('sysid', 'name'));
 $parser->setOptionalFields(array('idnumber', 'parent', 'depth', 'path'));
 
-$importer = new BulkImport($parser, 'group_categories');
+$translator = new CallbackMappingIterator($parser, function($key, $row) {
+	return array(
+		'sysid' => @$row['sysid'],
+		'name' => @$row['name'],
+		'idnumber' => @$row['idnumber'],
+		'parent_id' => IdManager::fromApplication('group_category', @$row['parent']),
+		'depth' => @$row['depth'],
+		'path' => @$row['path']
+	);
+});
+
+$importer = new BulkImport($translator, 'group_categories');
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
 $importer->run();
