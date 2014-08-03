@@ -26,3 +26,5 @@ alter table actions drop key action_unique_ix;
 alter table actions add unique key action_unique_ix (system_id,time,user_id,group_id,module_id,dimension_verb_id,sysid);
 
 alter table customer_artefacts add unique key customer_artefact_unique_ix (customer_id,artefact_id);
+
+alter table user_groups change id sysid int(11) unsigned;
