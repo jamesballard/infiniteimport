@@ -20,11 +20,12 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'type' => @$row['type'],
 		'name' => @$row['name'],
 		'idnumber' => @$row['idnumber'],
-		'group_category_id' => IdManager::fromApplication('group_categories', $row['category'])
+		'group_category_id' => IdManager::fromApplication('group_categories', @$row['category'])
 	);
 });
 
 $importer = new BulkImport($translator, 'groups');
+$importer->setFields(array('sysid', 'type', 'name', 'idnumber', 'group_category_id'));
 $importer->setSystemSpecific(true);
 $importer->setDated(true);
 $importer->run();
