@@ -20,7 +20,7 @@ $translator = new CallbackMappingIterator($parser, function($key, $row) {
 		'sysid' => @$row['sysid'],
 		'name' => @$row['name'],
 		'idnumber' => @$row['idnumber'],
-		'parent_id' => IdManager::fromApplication('group_category', @$row['parent']),
+		'parent_id' => IdManager::fromApplication('group_categories', @$row['parent']),
 		'depth' => @$row['depth'],
 		'path' => @$row['path']
 	);
