@@ -85,7 +85,7 @@ class BulkImport {
 		$sql = $this->buildSql();
 		$db = new_database();
 		try {
-			echo "$sql\n";
+			#echo "$sql\n";
 			$stmt = $db->prepare($sql);
 		} catch (PDOException $e) {
 			throw new DatabaseException($e->getMessage(), $sql);
@@ -93,7 +93,7 @@ class BulkImport {
 
 		foreach($this->parser as $row) {
 			try {
-				echo implode(',', $row) . "\n";
+				#echo implode(',', $row) . "\n";
 				$affected_rows = $stmt->execute($row);
 			} catch (PDOException $e) {
 				throw new DatabaseException($e->getMessage(), $sql, $row);

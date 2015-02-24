@@ -118,25 +118,25 @@ function convert_date($format_in, $format_out, $datetime_in) {
 }
 
 function query_value($query, $params = array()) {
-	echo "$query\n";
-	echo implode(',', $params) . "\n";
+	#echo "$query\n";
+	#echo implode(',', $params) . "\n";
 	$db = database();
 	$stmt = $db->prepare($query);
 	$stmt->execute($params);
 	$result = $stmt->fetchColumn();
 	$stmt->closeCursor();
-	echo "Complete $result\n";
+	#echo "Complete $result\n";
 	return $result;
 }
 
 function sql_execute($query, $params = array()) {
-	echo "$query\n";
-	echo implode(',', $params) . "\n";
+	#echo "$query\n";
+	#echo implode(',', $params) . "\n";
 	$db = database();
 	$stmt = $db->prepare($query);
 	$stmt->execute($params);
 	$stmt->closeCursor();
-	echo "Complete\n";
+	#echo "Complete\n";
 }
 
 ?>
